@@ -2,5 +2,9 @@
 	"base": {
 		"ref": "master",
 		"sha": "c467a407711867b6b9a2df8bf54c548587ff54ed"
-	}
+	},
+  "head": {
+    "ref": "docker",
+    "sha": "e619a94d876f28c5a06f4236e0a18aa8bd69efef"
+  }
 }
