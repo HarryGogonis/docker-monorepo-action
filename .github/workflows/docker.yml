@@ -14,7 +14,7 @@ jobs:
     - name: Publish to Registry
       uses: HurricanKai/Publish-Docker-Github-Action@master
       with:
-        name: harrygogonis/docker-monorepo-action
+        name: harrygogonis/docker-monorepo-action/action
         registry: docker.pkg.github.com
         username: harrygogonis
         password: ${{ secrets.GITHUB_TOKEN }}
