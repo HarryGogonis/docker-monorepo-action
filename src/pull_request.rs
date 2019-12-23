@@ -46,7 +46,9 @@ impl PullRequest {
 impl fmt::Display for PullRequestError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            PullRequestError::Io(ref e, ref path) => write!(f, "Failed to read file: '{}':\n\t {}", path, e),
+            PullRequestError::Io(ref e, ref path) => {
+                write!(f, "Failed to read file: '{}':\n\t {}", path, e)
+            }
             PullRequestError::JSON(ref e) => e.fmt(f),
         }
     }

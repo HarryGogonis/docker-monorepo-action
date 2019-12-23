@@ -1,6 +1,6 @@
 mod pull_request;
 mod repo;
-use pull_request::{PullRequest};
+use pull_request::PullRequest;
 
 fn main() {
     std::process::exit(match run_app() {
@@ -12,7 +12,7 @@ fn main() {
     });
 }
 
-fn run_app() -> Result<(),  Box<dyn std::error::Error>> {
+fn run_app() -> Result<(), Box<dyn std::error::Error>> {
     let pr = match PullRequest::read(
         // todo do not hardcode
         "./test/payload.json",
