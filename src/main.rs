@@ -1,6 +1,12 @@
-mod pull_request;
+mod event;
 mod repo;
-use pull_request::{PullRequest};
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct Config {
+    workspace: String,
+    event_path: String,
+}
 
 fn main() {
     std::process::exit(match run_app() {
@@ -12,25 +18,32 @@ fn main() {
     });
 }
 
-fn run_app() -> Result<(),  Box<dyn std::error::Error>> {
-    let pr = match PullRequest::read(
-        // todo do not hardcode
-        "./test/payload.json",
-    ) {
+fn run_app() -> Result<(), Box<dyn std::error::Error>> {
+    let config = match envy::prefixed("GITHUB_").from_env::<Config>() {
+        Ok(c) => c,
+        Err(e) => return Err(Box::new(e)),
+    };
+
+    let event = match event::read(config.event_path.clone(), config.workspace.clone()) {
         Err(e) => return Err(Box::new(e)),
         Ok(x) => x,
     };
 
-    println!("base sha {}", pr.base.sha);
-    let git = match repo::new("/Users/harrygogonis/Projects/htpc-docker") {
+    let git = match repo::open(config.workspace.clone()) {
         Err(e) => return Err(Box::new(e)),
         Ok(x) => x,
     };
 
-    // todo do not hardcode
-    match git.get_changed_files(pr) {
+    let paths = match git.get_dockerfile_paths(event) {
         Err(e) => return Err(Box::new(e)),
-        Ok(changed_files) => println!("files changed {:?}", changed_files),
+        Ok(x) => x,
+    };
+
+    for path in paths {
+        match path.to_str() {
+            Some(s) => println!("{}", s),
+            None => (),
+        }
     }
 
     Ok(())
