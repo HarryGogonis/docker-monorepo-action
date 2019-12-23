@@ -44,7 +44,7 @@ impl Repo for GitRepo {
     }
 }
 
-pub fn new(file_path: &str) -> Result<Box<dyn Repo>, Error> {
+pub fn open(file_path: String) -> Result<Box<dyn Repo>, Error> {
     let repo = Repository::open(file_path)?;
     let git = Box::new(GitRepo { repo });
     Ok(git)

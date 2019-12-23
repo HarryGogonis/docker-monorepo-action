@@ -26,11 +26,11 @@ pub enum PullRequestError {
 }
 
 impl PullRequest {
-    pub fn read(file_path: &str) -> Result {
+    pub fn read(file_path: String) -> Result {
         let mut buffer = String::new();
 
-        let mut file = match File::open(file_path) {
-            Err(e) => return Err(PullRequestError::Io(e, String::from(file_path))),
+        let mut file = match File::open(&file_path) {
+            Err(e) => return Err(PullRequestError::Io(e, file_path)),
             Ok(f) => f,
         };
 
