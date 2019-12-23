@@ -1,40 +1,35 @@
 mod pull_request;
 mod repo;
-use std::io::{Error, ErrorKind, Result};
+use pull_request::{PullRequest};
 
-fn main() -> Result<()> {
-    let pr = match pull_request::new(
-        // todo do not hardcode
-        "/Users/harrygogonis/Projects/Rust/docker-monorepo-action/test/payload.json",
-    ) {
-        Err(e) => {
-            return Err(Error::new(
-                ErrorKind::Other,
-                format!("Failed to load PR JSON: {}", e),
-            ))
+fn main() {
+    std::process::exit(match run_app() {
+        Ok(_) => 0,
+        Err(err) => {
+            eprintln!("error: {}", err);
+            1
         }
+    });
+}
+
+fn run_app() -> Result<(),  Box<dyn std::error::Error>> {
+    let pr = match PullRequest::read(
+        // todo do not hardcode
+        "./test/payload.json",
+    ) {
+        Err(e) => return Err(Box::new(e)),
         Ok(x) => x,
     };
 
     println!("base sha {}", pr.base.sha);
     let git = match repo::new("/Users/harrygogonis/Projects/htpc-docker") {
-        Err(e) => {
-            return Err(Error::new(
-                ErrorKind::Other,
-                format!("Failed to load git repo: {}", e),
-            ))
-        }
+        Err(e) => return Err(Box::new(e)),
         Ok(x) => x,
     };
 
     // todo do not hardcode
     match git.get_changed_files(pr) {
-        Err(e) => {
-            return Err(Error::new(
-                ErrorKind::Other,
-                format!("Failed to diff: {}", e),
-            ))
-        }
+        Err(e) => return Err(Box::new(e)),
         Ok(changed_files) => println!("files changed {:?}", changed_files),
     }
 
