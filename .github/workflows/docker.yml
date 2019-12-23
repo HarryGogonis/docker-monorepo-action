@@ -16,5 +16,5 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
-        repository: HarryGogonis/docker-monorepo-action/action
+        repository: harrygogonis/docker-monorepo-action/action
   
