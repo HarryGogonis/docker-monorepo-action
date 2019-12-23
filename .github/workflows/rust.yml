@@ -10,7 +10,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: Lint
+      run: cargo fmt --all -- --check
     - name: Build
       run: cargo build --verbose
-    - name: Run tests
+    - name: Test
       run: cargo test --verbose
