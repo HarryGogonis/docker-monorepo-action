@@ -17,7 +17,7 @@ pub struct PullRequest {
     pub head: GitRef,
 }
 
-type Result = std::result::Result<PullRequest, PullRequestError>;
+type Result = std::result::Result<Event, PullRequestError>;
 
 #[derive(Debug)]
 pub enum PullRequestError {
@@ -25,21 +25,27 @@ pub enum PullRequestError {
     JSON(serde_json::error::Error),
 }
 
-impl PullRequest {
-    pub fn read(file_path: String) -> Result {
-        let mut buffer = String::new();
+pub struct Event {
+    pub payload: PullRequest,
+    pub path: String,
+}
 
-        let mut file = match File::open(&file_path) {
-            Err(e) => return Err(PullRequestError::Io(e, file_path)),
-            Ok(f) => f,
-        };
+pub fn read(event_path: String, workflow_path: String) -> Result {
+    let mut buffer = String::new();
 
-        let _ = file.read_to_string(&mut buffer);
+    let mut file = match File::open(&event_path) {
+        Err(e) => return Err(PullRequestError::Io(e, event_path)),
+        Ok(f) => f,
+    };
 
-        match serde_json::from_str(&buffer) {
-            Ok(v) => Ok(v),
-            Err(e) => return Err(PullRequestError::JSON(e)),
-        }
+    let _ = file.read_to_string(&mut buffer);
+
+    match serde_json::from_str(&buffer) {
+        Ok(v) => Ok(Event {
+            payload: v,
+            path: workflow_path,
+        }),
+        Err(e) => return Err(PullRequestError::JSON(e)),
     }
 }
 

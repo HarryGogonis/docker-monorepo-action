@@ -1,13 +1,11 @@
-mod docker;
-mod pull_request;
+mod event;
 mod repo;
-use pull_request::PullRequest;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 struct Config {
-    github_workspace: String,
-    github_event_path: String,
+    workspace: String,
+    event_path: String,
 }
 
 fn main() {
@@ -21,29 +19,25 @@ fn main() {
 }
 
 fn run_app() -> Result<(), Box<dyn std::error::Error>> {
-    let config = match envy::from_env::<Config>() {
+    let config = match envy::prefixed("GITHUB_").from_env::<Config>() {
         Ok(c) => c,
         Err(e) => return Err(Box::new(e)),
     };
 
-    let pr = match PullRequest::read(config.github_event_path) {
+    let event = match event::read(config.event_path.clone(), config.workspace.clone()) {
         Err(e) => return Err(Box::new(e)),
         Ok(x) => x,
     };
 
-    println!("base sha {}", pr.base.sha);
-    let git = match repo::open(config.github_workspace) {
+    let git = match repo::open(config.workspace.clone()) {
         Err(e) => return Err(Box::new(e)),
         Ok(x) => x,
     };
 
-    let changed_files = match git.get_changed_files(pr) {
+    let paths = match git.get_dockerfile_paths(event) {
         Err(e) => return Err(Box::new(e)),
-        Ok(f) => f,
+        Ok(x) => x,
     };
-
-    println!("files changed {:?}", changed_files);
-    let paths = docker::get_dockerfile_paths(changed_files);
 
     for path in paths {
         match path.to_str() {

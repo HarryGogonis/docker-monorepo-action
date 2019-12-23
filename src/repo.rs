@@ -1,4 +1,4 @@
-use crate::pull_request::PullRequest;
+use crate::event::{Event, PullRequest};
 use git2::{DiffDelta, Error, Repository, Tree};
 use std::path::PathBuf;
 use std::vec::Vec;
@@ -6,6 +6,7 @@ use std::vec::Vec;
 pub trait Repo {
     fn get_tree(&self, sha: &str) -> Result<Tree, Error>;
     fn get_changed_files(&self, pr: PullRequest) -> Result<Vec<PathBuf>, Error>;
+    fn get_dockerfile_paths(&self, event: Event) -> Result<Vec<PathBuf>, Error>;
 }
 
 pub struct GitRepo {
@@ -18,7 +19,6 @@ impl Repo for GitRepo {
         let base = self.get_tree(&pr.base.sha)?;
         let head = self.get_tree(&pr.head.sha)?;
 
-        // TODO do something with this value
         let diff = self
             .repo
             .diff_tree_to_tree(Some(&base), Some(&head), None)?;
@@ -41,6 +41,34 @@ impl Repo for GitRepo {
         let obj = self.repo.revparse_single(sha)?;
         let tree = obj.peel_to_tree()?;
         Ok(tree)
+    }
+
+    fn get_dockerfile_paths(&self, event: Event) -> Result<Vec<PathBuf>, Error> {
+        let files = self.get_changed_files(event.payload)?;
+
+        let base_path = PathBuf::from(event.path);
+
+        let mut v = Vec::new();
+
+        for file in files {
+            let mut repo_path = file.clone();
+            repo_path.pop();
+
+            let mut dir = base_path.clone();
+            dir.push(repo_path);
+
+            let mut dockerfile = dir.clone();
+            dockerfile.push("Dockerfile");
+
+            if dockerfile.exists() {
+                v.push(dir);
+            }
+        }
+
+        v.sort();
+        v.dedup();
+
+        Ok(v)
     }
 }
 
