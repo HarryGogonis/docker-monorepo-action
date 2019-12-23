@@ -14,7 +14,7 @@ jobs:
       uses: jerray/publish-docker-action@master
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
-        repository: harrygogonis/docker-monorepo-action/action
+        repository: HarryGogonis/docker-monorepo-action/action
   
