@@ -1,10 +1,11 @@
 use crate::pull_request::PullRequest;
 use git2::{DiffDelta, Error, Repository, Tree};
+use std::path::PathBuf;
 use std::vec::Vec;
 
 pub trait Repo {
     fn get_tree(&self, sha: &str) -> Result<Tree, Error>;
-    fn get_changed_files(&self, pr: PullRequest) -> Result<Vec<String>, Error>;
+    fn get_changed_files(&self, pr: PullRequest) -> Result<Vec<PathBuf>, Error>;
 }
 
 pub struct GitRepo {
@@ -12,7 +13,7 @@ pub struct GitRepo {
 }
 
 impl Repo for GitRepo {
-    fn get_changed_files(&self, pr: PullRequest) -> Result<Vec<String>, Error> {
+    fn get_changed_files(&self, pr: PullRequest) -> Result<Vec<PathBuf>, Error> {
         let mut v = Vec::new();
         let base = self.get_tree(&pr.base.sha)?;
         let head = self.get_tree(&pr.head.sha)?;
@@ -23,14 +24,9 @@ impl Repo for GitRepo {
             .diff_tree_to_tree(Some(&base), Some(&head), None)?;
 
         let mut push_file = |delta: DiffDelta, _: f32| -> bool {
-            let path = match delta.new_file().path() {
-                Some(p) => p,
-                None => return false,
-            };
-
-            match path.to_str() {
-                Some(p) => v.push(String::from(p)),
-                None => return false,
+            match delta.new_file().path() {
+                Some(p) => v.push(p.to_path_buf()),
+                None => return true,
             };
 
             return true;
