@@ -1,0 +1,21 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches:    
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Publish to Registry
+      uses: HurricanKai/Publish-Docker-Github-Action@master
+      with:
+        name: harrygogonis/docker-monorepo-action
+        registry: docker.pkg.github.com
+        username: harrygogonis
+        password: ${{ secrets.GITHUB_TOKEN }}
+        tagging: true
