@@ -50,8 +50,8 @@ fn run_app() -> Result<(), Box<dyn std::error::Error>> {
                 "master"
             );
 
-            docker::build(tag.clone(), String::from(p));
-            docker::push(tag.clone());
+            docker::build(tag.clone(), String::from(p))?;
+            docker::push(tag.clone())?;
         }
     }
 
