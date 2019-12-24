@@ -8,6 +8,20 @@ pub struct DockerError {
 
 type Result = std::result::Result<(), DockerError>;
 
+pub fn login(username: String, password: String, registry: String) -> Result {
+    let mut docker = Command::new("docker");
+    let cmd = docker
+        .arg("login")
+        .arg("-u")
+        .arg(username)
+        .arg("-p")
+        .arg(password)
+        .arg(registry);
+
+    run_cmd(cmd)?;
+    Ok(())
+}
+
 pub fn build(tag: String, path: String) -> Result {
     let mut docker = Command::new("docker");
     let cmd = docker.arg("build").arg("-t").arg(tag).arg(path);
