@@ -1,0 +1,7 @@
+name: 'Docker Monorepo Publish'
+description: 'Publishes changes to multiple Docker apps in a monorepo'
+inputs: {}
+outputs: {}
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
