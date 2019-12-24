@@ -8,6 +8,8 @@ struct Config {
     workspace: String,
     event_path: String,
     repository: String,
+    actor: String,
+    token: String,
 }
 
 fn main() {
@@ -21,6 +23,10 @@ fn main() {
 }
 
 fn run_app() -> Result<(), Box<dyn std::error::Error>> {
+    // TODO consider passing these in
+    let docker_registry = "docker.pkg.github.com";
+    let build_tag = "master";
+
     let config = match envy::prefixed("GITHUB_").from_env::<Config>() {
         Ok(c) => c,
         Err(e) => return Err(Box::new(e)),
@@ -41,13 +47,20 @@ fn run_app() -> Result<(), Box<dyn std::error::Error>> {
         Ok(x) => x,
     };
 
+    if paths.len() <= 0 {
+        return Ok(());
+    }
+
+    docker::login(config.actor, config.token, String::from(docker_registry))?;
+
     for path in paths {
         if let (Some(app), Some(p)) = (path.file_name().and_then(|p| p.to_str()), path.to_str()) {
             let tag = format!(
-                "docker.pkg.github.com/{}/{}:{}",
+                "{}/{}/{}:{}",
+                docker_registry,
                 config.repository.to_lowercase(),
                 app,
-                "master"
+                build_tag
             );
 
             docker::build(tag.clone(), String::from(p))?;
