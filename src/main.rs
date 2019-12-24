@@ -1,3 +1,4 @@
+mod docker;
 mod event;
 mod repo;
 use serde::Deserialize;
@@ -6,6 +7,7 @@ use serde::Deserialize;
 struct Config {
     workspace: String,
     event_path: String,
+    repository: String,
 }
 
 fn main() {
@@ -40,9 +42,16 @@ fn run_app() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     for path in paths {
-        match path.to_str() {
-            Some(s) => println!("{}", s),
-            None => (),
+        if let (Some(app), Some(p)) = (path.file_name().and_then(|p| p.to_str()), path.to_str()) {
+            let tag = format!(
+                "docker.pkg.github.com/{}/{}:{}",
+                config.repository.to_lowercase(),
+                app,
+                "master"
+            );
+
+            docker::build(tag.clone(), String::from(p));
+            docker::push(tag.clone());
         }
     }
 
