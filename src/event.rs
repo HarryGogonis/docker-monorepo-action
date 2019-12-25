@@ -35,6 +35,8 @@ pub fn read(
         Ok(f) => f,
     };
 
+    println!("{}", json);
+
     let payload = match event_name.as_str() {
         "pull_request" => PullRequest::read(&json)?,
         "push" => Push::read(&json)?,
