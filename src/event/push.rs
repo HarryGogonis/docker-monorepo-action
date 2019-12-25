@@ -5,13 +5,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct Push {
     pub before: String,
-    pub head: String,
+    pub after: String,
 }
 
 impl Diffable for Push {
     fn get_commit_range(&self) -> (String, String) {
         let base_commit = self.before.clone();
-        let head_commit = self.head.clone();
+        let head_commit = self.after.clone();
         (base_commit, head_commit)
     }
 }
