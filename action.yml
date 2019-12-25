@@ -1,5 +1,8 @@
 name: 'Docker Monorepo Publish'
 description: 'Publishes changes to multiple Docker apps in a monorepo'
+branding:
+  icon: 'arrow-up-circle'  
+  color: 'black'
 inputs: {}
 outputs: {}
 runs:
