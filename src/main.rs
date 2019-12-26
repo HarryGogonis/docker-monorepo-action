@@ -1,5 +1,6 @@
 mod docker;
 mod event;
+mod file_util;
 mod pull_request;
 mod repo;
 use crate::repo::Repo;
@@ -9,6 +10,7 @@ use serde::Deserialize;
 struct Config {
     workspace: String,
     event_path: String,
+    event_name: String,
     repository: String,
     actor: String,
     token: String,
@@ -34,7 +36,11 @@ fn run_app() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => return Err(Box::new(e)),
     };
 
-    let event = match event::read(config.event_path.clone(), config.workspace.clone()) {
+    let event = match event::read(
+        config.event_path.clone(),
+        config.event_name.clone(),
+        config.workspace.clone(),
+    ) {
         Err(e) => return Err(Box::new(e)),
         Ok(x) => x,
     };
