@@ -1,43 +1,45 @@
+use crate::file_util;
 use crate::pull_request::PullRequest;
 use crate::repo::Diffable;
-use serde::{Deserialize, Serialize};
 use std::error;
 use std::fmt;
-use std::fs::File;
-use std::io;
-use std::io::prelude::*;
-
-#[derive(Serialize, Deserialize)]
-pub struct GitRef {
-    pub r#ref: String,
-    pub sha: String,
-}
 
 #[derive(Debug)]
 pub enum EventError {
-    Io(io::Error, String),
+    Io(std::io::Error, String),
     JSON(serde_json::error::Error),
+    EventType(String),
 }
 
 pub struct Event {
-    pub payload: Box<dyn Diffable>,
+    pub payload: EventPayload,
     pub path: String,
 }
 
-pub fn read(event_path: String, workflow_path: String) -> Result<Event, EventError> {
-    let mut buffer = String::new();
+pub type EventPayload = Box<dyn Diffable>;
 
-    let mut file = match File::open(&event_path) {
+pub trait EventParser {
+    fn read(json: &str) -> Result<EventPayload, EventError>;
+}
+
+pub fn read(
+    event_path: String,
+    event_name: String,
+    workflow_path: String,
+) -> Result<Event, EventError> {
+    let json = match file_util::read(&event_path) {
         Err(e) => return Err(EventError::Io(e, event_path)),
         Ok(f) => f,
     };
 
-    let _ = file.read_to_string(&mut buffer);
+    let payload = match event_name.as_str() {
+        "pull_request" => PullRequest::read(&json)?,
+        // TODO support "push" type
+        _ => return Err(EventError::EventType(event_name)),
+    };
 
-    // TODO support multiple event types
-    let pr = PullRequest::read(buffer)?;
     Ok(Event {
-        payload: Box::new(pr),
+        payload,
         path: workflow_path,
     })
 }
@@ -49,6 +51,7 @@ impl fmt::Display for EventError {
                 write!(f, "Failed to read file: '{}':\n\t {}", path, e)
             }
             EventError::JSON(ref e) => e.fmt(f),
+            EventError::EventType(ref e) => write!(f, "Event type {} not supported", e),
         }
     }
 }
@@ -58,6 +61,7 @@ impl error::Error for EventError {
         match *self {
             EventError::Io(ref e, _) => Some(e),
             EventError::JSON(ref e) => Some(e),
+            EventError::EventType(_) => None,
         }
     }
 }
