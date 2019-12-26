@@ -1,7 +1,5 @@
 mod docker;
 mod event;
-mod file_util;
-mod pull_request;
 mod repo;
 use crate::repo::Repo;
 use serde::Deserialize;

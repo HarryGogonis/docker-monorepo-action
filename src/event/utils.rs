@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::Error;
 
-pub fn read(path: &str) -> Result<String, Error> {
+pub fn read_file(path: &str) -> Result<String, Error> {
     let mut buffer = String::new();
     let mut file = File::open(path)?;
 

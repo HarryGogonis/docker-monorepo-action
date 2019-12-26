@@ -1,6 +1,9 @@
-use crate::file_util;
-use crate::pull_request::PullRequest;
+mod pull_request;
+mod push;
+mod utils;
 use crate::repo::Diffable;
+use pull_request::PullRequest;
+use push::Push;
 use std::error;
 use std::fmt;
 
@@ -27,14 +30,14 @@ pub fn read(
     event_name: String,
     workflow_path: String,
 ) -> Result<Event, EventError> {
-    let json = match file_util::read(&event_path) {
+    let json = match utils::read_file(&event_path) {
         Err(e) => return Err(EventError::Io(e, event_path)),
         Ok(f) => f,
     };
 
     let payload = match event_name.as_str() {
         "pull_request" => PullRequest::read(&json)?,
-        // TODO support "push" type
+        "push" => Push::read(&json)?,
         _ => return Err(EventError::EventType(event_name)),
     };
 
